@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LinkedIn DM Architect</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../../icons/icon32.png" alt="" width="20" height="20" />
+      <span>DM Architect</span>
+    </div>
+    <div class="topbar-actions">
+      <button id="btn-favorites" class="icon-btn" title="Saved drafts" aria-label="Saved drafts">★<span id="fav-count" class="pill" hidden></span></button>
+      <button id="btn-settings" class="icon-btn" title="Settings" aria-label="Settings">⚙</button>
+    </div>
+  </header>
+
+  <!-- My profile status chip -->
+  <div id="me-chip" class="me-chip" hidden></div>
+  <div id="update-banner" class="update-banner" hidden></div>
+
+  <main id="app">
+    <!-- Status / empty / loading states -->
+    <section id="view-status" class="card" hidden>
+      <div id="status-icon" class="status-icon"></div>
+      <h2 id="status-title"></h2>
+      <p id="status-text" class="muted"></p>
+      <div id="status-actions" class="actions"></div>
+    </section>
+
+    <!-- Own profile: Sync -->
+    <section id="view-own" hidden>
+      <div class="card highlight">
+        <p class="eyebrow">This is your profile</p>
+        <h2 id="own-name"></h2>
+        <p id="own-state" class="muted"></p>
+        <div id="own-gate" hidden></div>
+        <button id="btn-sync" class="btn primary big">Sync My Profile</button>
+        <p class="hint">Reads only this open page and saves it in your browser. Nothing is uploaded.</p>
+      </div>
+      <div id="sync-result" class="card" hidden></div>
+      <div class="card">
+        <h3>About me note</h3>
+        <p class="hint">Things that aren’t on your profile but should shape your messages — what you’re looking for, availability, a recent win. AI drafts may use it; it’s never shown to anyone.</p>
+        <textarea id="note-own" class="note" maxlength="1500" placeholder="e.g. Looking for a localization PM role at an edtech company; open to Lagos or remote. Recently finished a CAT-tools certification."></textarea>
+        <div class="row-between"><span class="hint note-status" role="status"></span><button class="btn ghost small btn-save-note" type="button" data-for="note-own">Save note</button></div>
+      </div>
+    </section>
+
+    <!-- Target profile / company: Analyze + Generate -->
+    <section id="view-target" hidden>
+      <div class="card">
+        <p id="target-eyebrow" class="eyebrow">Viewing</p>
+        <h2 id="target-name"></h2>
+        <p id="target-headline" class="muted"></p>
+        <div id="target-gate" hidden></div>
+        <label id="recipient-wrap" class="field" hidden>
+          <span>Who are you messaging? (optional)</span>
+          <input id="inp-recipient" placeholder="e.g. a recruiter or hiring manager’s full name" autocomplete="off" />
+        </label>
+        <button id="btn-analyze" class="btn primary">Analyze profile</button>
+        <ol id="company-steps" class="steps" hidden>
+          <li data-step="analyze">Analyze About page</li>
+          <li data-step="research">Research (Tavily)</li>
+          <li data-step="application">Application message</li>
+        </ol>
+        <button id="btn-open-about" class="btn ghost small" type="button" hidden>Open the About tab</button>
+        <p id="company-tip" class="hint" hidden></p>
+        <div id="target-diag" class="card warn" hidden></div>
+        <div id="analyze-error" class="card error" hidden></div>
+        <button id="btn-not-target" class="link-btn" type="button">Is this your profile? Check your name / username in Settings</button>
+      </div>
+
+      <div id="analysis" hidden>
+        <div id="research-card" class="card">
+          <div class="row-between">
+            <h3 id="research-title">Company research</h3>
+            <span id="research-badge" class="chip" hidden></span>
+          </div>
+          <p id="research-intro" class="hint"></p>
+          <label class="field">
+            <span>Company to research</span>
+            <input id="inp-research-company" autocomplete="off" />
+          </label>
+          <button id="btn-research" class="btn ghost" type="button">Research company</button>
+          <p id="research-note" class="hint"></p>
+          <div id="research-body"></div>
+        </div>
+
+        <div id="application-card" class="card highlight" hidden>
+          <div class="row-between"><h3>3. Application message</h3><span id="application-engine" class="chip"></span></div>
+          <p class="hint">Written from your synced profile and About-me note, matched to what this company does and hires for (its About page + the research above). For their careers email, a LinkedIn message or a recruiter. Nothing is sent.</p>
+          <label class="field">
+            <span>Tone</span>
+            <select id="sel-app-tone">
+              <option value="professional">Professional</option>
+              <option value="friendly">Warm</option>
+              <option value="direct">Direct</option>
+            </select>
+          </label>
+          <button id="btn-draft-application" class="btn primary big" type="button">Draft Application Message</button>
+          <p id="company-notice" class="hint"></p>
+          <div id="application-out"></div>
+        </div>
+
+        <div id="dm-section">
+        <div class="card">
+          <div class="row-between">
+            <h3>Top hooks</h3>
+            <span class="muted small">Pick up to 3</span>
+          </div>
+          <ul id="hooks" class="hooks"></ul>
+          <details id="more-hooks-wrap">
+            <summary>More hooks</summary>
+            <ul id="more-hooks" class="hooks"></ul>
+          </details>
+        </div>
+
+        <div class="card">
+          <label class="field">
+            <span>Goal</span>
+            <select id="sel-goal">
+              <option value="warm">Warm Network</option>
+              <option value="value">Value-First</option>
+              <option value="opportunity">Soft Opportunity</option>
+              <option value="interview">Interview Request</option>
+              <option value="peer">Peer Collaboration</option>
+            </select>
+          </label>
+          <div class="grid2">
+            <label class="field">
+              <span>Tone</span>
+              <select id="sel-tone">
+                <option value="friendly">Friendly</option>
+                <option value="professional">Professional</option>
+                <option value="direct">Direct</option>
+                <option value="casual">Casual</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Length</span>
+              <select id="sel-length">
+                <option value="dm">Direct message</option>
+                <option value="note">Connection note (≤300)</option>
+              </select>
+            </label>
+          </div>
+          <button id="btn-generate" class="btn primary big">Generate DM</button>
+          <p id="engine-note" class="hint"></p>
+        </div>
+
+        </div>
+        <div id="gen-error" class="card error" hidden></div>
+        <div id="dm-output">
+          <div id="variants-head"></div>
+          <div id="variants"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Saved drafts -->
+    <section id="view-favorites" hidden>
+      <div class="card">
+        <div class="row-between">
+          <h2>Saved drafts</h2>
+          <button id="btn-close-favorites" class="link-btn" type="button">Done</button>
+        </div>
+        <p class="hint">Saved as templates: the recipient’s name and company become placeholders, so you can reuse a draft on anyone. Stored only in this browser.</p>
+      </div>
+      <div id="favorites-list"></div>
+    </section>
+
+    <!-- Settings -->
+    <section id="view-settings" hidden>
+      <div class="card highlight" id="me-card">
+        <div class="row-between">
+          <h2>Settings</h2>
+          <button id="btn-close-settings" class="link-btn" type="button">Done</button>
+        </div>
+        <h3>You</h3>
+        <p class="hint">Sync only saves a profile after checking it’s yours, using these details.</p>
+        <label class="field">
+          <span>Your name (as on LinkedIn) — required</span>
+          <input id="inp-me-name" autocomplete="name" placeholder="e.g. Amara Okafor" />
+        </label>
+        <label class="field">
+          <span>Your LinkedIn profile URL or username — recommended</span>
+          <input id="inp-me-id" autocomplete="off" spellcheck="false" placeholder="linkedin.com/in/your-name  or  your-name" />
+        </label>
+        <div class="actions">
+          <button id="btn-save-me" class="btn primary" type="button">Save</button>
+        </div>
+        <p id="me-status" class="hint" role="status"></p>
+      </div>
+
+      <div class="card">
+
+        <label class="field">
+          <span>AI provider</span>
+          <select id="sel-provider">
+            <option value="groq">Groq — free, fast (recommended)</option>
+            <option value="gemini">Google Gemini — free tier</option>
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic Claude</option>
+            <option value="grok">xAI Grok</option>
+            <option value="local">None — local templates only</option>
+          </select>
+        </label>
+
+        <div id="provider-fields">
+          <label class="field">
+            <span id="key-label">API key</span>
+            <div class="input-row">
+              <input id="inp-key" type="password" autocomplete="new-password" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" />
+              <button id="btn-toggle-key" class="btn ghost small" type="button" title="Show what you are typing">Show</button>
+            </div>
+            <a id="key-link" class="small" target="_blank" rel="noopener">Get a key</a>
+          </label>
+          <p id="key-saved" class="hint"></p>
+          <label class="field">
+            <span>Model</span>
+            <input id="inp-model" list="model-list" spellcheck="false" />
+            <datalist id="model-list"></datalist>
+          </label>
+          <div class="actions">
+            <button id="btn-save-key" class="btn primary" type="button">Save</button>
+            <button id="btn-test-key" class="btn ghost" type="button">Test key</button>
+            <button id="btn-remove-key" class="btn danger" type="button">Remove key</button>
+          </div>
+          <p id="key-status" class="hint" role="status"></p>
+          <label class="check">
+            <input id="chk-consent" type="checkbox" />
+            <span>I understand that “Generate DM” sends my synced profile, my About-me note and the viewed page’s extracted text to the selected provider using my key.</span>
+          </label>
+          <p class="hint">Your key is stored only in this browser (chrome.storage.local), is never shown again after saving, and is sent only to the provider you pick.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Web research (optional backup)</h3>
+        <p class="hint">Company research first uses your Groq or Gemini key’s built-in web search. For a dependable free backup, add a <a href="https://app.tavily.com/" target="_blank" rel="noopener">Tavily</a> key (free plan: 1,000 searches a month, no card). Tavily finds the pages; your AI provider summarises them.</p>
+        <label class="field">
+          <span>Tavily API key</span>
+          <div class="input-row">
+            <input id="inp-tavily" type="password" autocomplete="new-password" spellcheck="false" data-lpignore="true" data-1p-ignore="true" placeholder="tvly-…" />
+          </div>
+        </label>
+        <p id="tavily-saved" class="hint"></p>
+        <div class="actions">
+          <button id="btn-save-tavily" class="btn primary small" type="button">Save</button>
+          <button id="btn-remove-tavily" class="btn danger small" type="button">Remove</button>
+        </div>
+        <p id="tavily-status" class="hint" role="status"></p>
+      </div>
+
+      <div class="card">
+        <h3>Updates</h3>
+        <p id="update-version" class="muted small"></p>
+        <div class="actions">
+          <button id="btn-check-update" class="btn ghost" type="button">Check for updates</button>
+          <button id="btn-install-update" class="btn primary" type="button" hidden>Install update</button>
+        </div>
+        <p id="update-status" class="hint" role="status"></p>
+        <ul id="update-notes" class="warnings" hidden></ul>
+        <p class="hint">Updates come from <a id="update-repo" target="_blank" rel="noopener">github.com/SurdsoN/linkedinDM</a>. Checked automatically once a day.</p>
+      </div>
+
+      <div class="card">
+        <h3>On LinkedIn</h3>
+        <label class="check">
+          <input id="chk-fab" type="checkbox" />
+          <span>Show the floating “DM Architect” button on profile and company pages</span>
+        </label>
+      </div>
+
+      <div class="card">
+        <h3>My synced profile</h3>
+        <p id="settings-sync-state" class="muted"></p>
+        <div class="actions">
+          <button id="btn-view-json" class="btn ghost" type="button">View data</button>
+          <button id="btn-delete-profile" class="btn danger" type="button">Delete synced data</button>
+          <button id="btn-clear-research" class="btn ghost" type="button">Clear saved research</button>
+        </div>
+        <pre id="json-view" class="json" hidden></pre>
+        <label class="field">
+          <span>About me note</span>
+          <textarea id="note-settings" class="note" maxlength="1500" placeholder="What you’re looking for, availability, context not on your profile…"></textarea>
+        </label>
+        <div class="row-between"><span class="hint note-status" role="status"></span><button class="btn ghost small btn-save-note" type="button" data-for="note-settings">Save note</button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="disclaimer">
+    Drafts only — nothing is ever sent for you. Reads only the page you have open; no bulk actions.
+    Automated data collection may conflict with LinkedIn’s User Agreement — use for personal, one-at-a-time outreach.
+  </footer>
+
+  <!-- Classic script: shared extractor (exposes globalThis.LDAExtractor for mergeDetails/parseProfileUrl) -->
+  <script src="../content/extractor.js"></script>
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>

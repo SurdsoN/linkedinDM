@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DM Architect — Update</title>
+  <link rel="stylesheet" href="../sidepanel/sidepanel.css" />
+  <style>
+    body { max-width: 640px; margin: 0 auto; }
+    main { padding: 24px 16px; }
+    ol.howto { padding-left: 20px; font-size: 13px; }
+    ol.howto li { margin: 4px 0; }
+    .progress { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+    .progress > div { height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+    .notes { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="../../icons/icon32.png" alt="" width="20" height="20" /><span>DM Architect — Update</span></div>
+  </header>
+  <main>
+    <section class="card">
+      <h2 id="title">Checking for updates…</h2>
+      <p id="versions" class="muted"></p>
+      <ul id="notes" class="notes"></ul>
+    </section>
+
+    <section id="install" class="card" hidden>
+      <h3>Install the update</h3>
+      <p class="hint">Chrome only updates Web Store extensions on its own. Because DM Architect is loaded from a folder, it updates by writing the new files into that folder. You choose the folder once, and Chrome asks you to allow it.</p>
+      <div class="field"><span>Step 1 — Extension folder</span></div>
+      <p id="folder-state" class="muted small">No folder chosen yet.</p>
+      <button id="btn-folder" class="btn ghost" type="button">Choose the DM Architect folder…</button>
+      <div class="field"><span>Step 2 — Install</span></div>
+      <button id="btn-install" class="btn primary big" type="button" disabled>Install update</button>
+      <div class="progress" hidden><div id="bar"></div></div>
+      <p id="status" class="hint" role="status"></p>
+    </section>
+
+    <section class="card">
+      <h3>Prefer to update by hand?</h3>
+      <ol class="howto">
+        <li><a id="manual-link" href="#" target="_blank" rel="noopener">Download the new zip</a> and unzip it.</li>
+        <li>Copy its contents over your current DM Architect folder (replace the files).</li>
+        <li>Open <code>chrome://extensions</code> and click ↻ on DM Architect, or click <button id="btn-reload" class="link-btn" type="button">Reload extension</button>.</li>
+      </ol>
+      <p class="hint">Your settings, keys, synced profile and saved drafts are kept: they live in Chrome's storage, not in the folder.</p>
+    </section>
+  </main>
+  <script type="module" src="updater.js"></script>
+</body>
+</html>

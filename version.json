@@ -1,0 +1,14 @@
+{
+  "name": "LinkedIn DM Architect",
+  "version": "0.6.0",
+  "released": "2026-10-11",
+  "zip": "releases/linkedin-dm-architect-v0.6.0.zip",
+  "sha256": "491a27828ab552404002bc7dcf1473cc7fbbf05e2af1001e41981707599425a9",
+  "size": 124199,
+  "minimumChromeVersion": "116",
+  "notes": [
+    "Check for updates and one-click Install update from GitHub (Settings → Updates)",
+    "Daily background check with an “update available” banner",
+    "Updates are verified (SHA-256, manifest name and version) before installing"
+  ]
+}

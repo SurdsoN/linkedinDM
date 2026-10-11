@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LinkedIn DM Architect</title>
+  <meta name="description" content="A free Chrome extension that drafts personalised LinkedIn messages and job application messages from the page you're viewing and your own profile. You review and send — nothing is automatic." />
+  <link rel="icon" href="assets/icon128.png" />
+  <style>
+    :root {
+      --bg: #f6f4ef; --surface: #ffffff; --text: #16191d; --muted: #59616b; --border: #e3ded4;
+      --accent: #0a66c2; --accent-ink: #ffffff; --accent-soft: #e7f0fa; --ok: #1a7f37; --radius: 14px;
+      --shadow: 0 10px 30px rgba(16, 24, 40, .08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #111417; --surface: #1a1e22; --text: #e9ecef; --muted: #9aa4ae; --border: #2c3238;
+        --accent: #5aa2ea; --accent-ink: #0b1622; --accent-soft: #17283a; --ok: #56d364; --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #111417; --surface: #1a1e22; --text: #e9ecef; --muted: #9aa4ae; --border: #2c3238;
+      --accent: #5aa2ea; --accent-ink: #0b1622; --accent-soft: #17283a; --ok: #56d364; --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+    header.top { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+    header.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); text-decoration: none; }
+    .brand img { width: 28px; height: 28px; border-radius: 6px; }
+    nav a { color: var(--muted); text-decoration: none; margin-left: 18px; font-size: 14px; }
+    nav a:hover { color: var(--text); }
+    @media (max-width: 720px) { nav a:not(.keep) { display: none; } }
+
+    .btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 12px 20px; font-weight: 700; text-decoration: none; border: 1px solid transparent; cursor: pointer; font-size: 15px; }
+    .btn.primary { background: var(--accent); color: var(--accent-ink); }
+    .btn.primary:hover { filter: brightness(1.07); }
+    .btn.ghost { border-color: var(--border); color: var(--text); background: var(--surface); }
+    .btn.small { padding: 7px 14px; font-size: 13px; }
+
+    .hero { padding: 64px 0 40px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; }
+    @media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-top: 40px; } }
+    .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; }
+    h1 { font-size: clamp(32px, 5vw, 52px); line-height: 1.08; letter-spacing: -.02em; margin: 14px 0 16px; }
+    .lead { font-size: 18px; color: var(--muted); max-width: 560px; }
+    .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+    .meta { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .shot { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); padding: 10px; max-width: 380px; justify-self: center; }
+    .shot img { display: block; width: 100%; height: 520px; object-fit: cover; object-position: top; border-radius: 12px; }
+
+    section { padding: 56px 0; }
+    h2 { font-size: clamp(24px, 3.4vw, 34px); letter-spacing: -.01em; margin: 0 0 8px; }
+    .sub { color: var(--muted); margin: 0 0 28px; max-width: 680px; }
+
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: s; }
+    @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; counter-increment: s; }
+    .step::before { content: counter(s); display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 700; margin-bottom: 10px; }
+    .step h3 { margin: 0 0 6px; font-size: 17px; }
+    .step p { margin: 0; color: var(--muted); font-size: 15px; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+    .feat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .feat .ic { font-size: 22px; }
+    .feat h3 { font-size: 16px; margin: 6px 0 4px; }
+    .feat p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+    @media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+    ol.install { margin: 0; padding-left: 22px; }
+    ol.install li { margin: 10px 0; }
+    code { background: var(--accent-soft); color: var(--text); padding: 1px 6px; border-radius: 6px; font-size: .92em; }
+    .copy { margin-left: 6px; }
+    .note { font-size: 14px; color: var(--muted); }
+    .ok { color: var(--ok); font-weight: 600; }
+    .release ul { margin: 6px 0 0; padding-left: 20px; color: var(--muted); font-size: 14px; }
+
+    details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; }
+    summary { cursor: pointer; font-weight: 600; }
+    details p { color: var(--muted); margin: 10px 0 0; }
+
+    .notice { border-left: 4px solid var(--accent); }
+    footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
+    footer .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#"><img src="assets/icon128.png" alt="" />LinkedIn DM Architect</a>
+      <nav>
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#update">Updates</a>
+        <a href="#faq">FAQ</a>
+        <a class="keep" href="https://github.com/SurdsoN/linkedinDM" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <div>
+        <span class="eyebrow">Free Chrome extension</span>
+        <h1>LinkedIn messages that get replies — and interviews.</h1>
+        <p class="lead">DM Architect reads the profile or company page you’re on, matches it to your own profile, researches the company, and drafts personalised DMs and application messages. You review, edit and send — nothing is ever sent for you.</p>
+        <div class="cta">
+          <a id="download" class="btn primary" href="https://github.com/SurdsoN/linkedinDM/tree/main/releases">⬇ Download <span id="dl-version"></span></a>
+          <a class="btn ghost" href="#install">How to install</a>
+        </div>
+        <p class="meta" id="release-meta">Chrome 116+ · Works with free Groq and Tavily keys</p>
+      </div>
+      <div class="shot"><img src="assets/panel-target.jpg" alt="DM Architect side panel showing ranked conversation hooks next to a LinkedIn profile" /></div>
+    </div>
+
+    <section id="how">
+      <div class="wrap">
+        <h2>How it works</h2>
+        <p class="sub">No copying and pasting your CV. The extension reads the page you already have open.</p>
+        <div class="steps">
+          <div class="step"><h3>Sync your profile</h3><p>Open your own LinkedIn profile and click <b>Sync My Profile</b>. It checks the page is yours, then saves your roles, education and skills in your browser.</p></div>
+          <div class="step"><h3>Open a person or company</h3><p>On a profile it ranks the strongest openers — shared employers, their posts, hiring signals. On a company page it reads the About tab and researches the company.</p></div>
+          <div class="step"><h3>Draft, edit, copy</h3><p>Get three DM drafts, or an application message under LinkedIn’s 750-character limit. Every name and number is fact-checked against the real profiles.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="wrap">
+        <h2>Features</h2>
+        <p class="sub">Built for networking that leads to hiring conversations.</p>
+        <div class="grid">
+          <div class="feat"><div class="ic">👤</div><h3>Zero-upload profile sync</h3><p>One click on your own profile. Verified against your name and LinkedIn username.</p></div>
+          <div class="feat"><div class="ic">🎯</div><h3>Hook ranking</h3><p>Shared companies and schools, recent posts, new roles, hiring areas that match your background.</p></div>
+          <div class="feat"><div class="ic">✉️</div><h3>DMs with a goal</h3><p>Warm network, value-first, soft opportunity, interview request or peer collaboration — in your tone.</p></div>
+          <div class="feat"><div class="ic">🏢</div><h3>Company flow</h3><p>Analyze the About page → research with Tavily → draft an application message (≤ 700 characters).</p></div>
+          <div class="feat"><div class="ic">🔎</div><h3>Fact-check</h3><p>Names or numbers that don’t appear in either profile are highlighted before you send.</p></div>
+          <div class="feat"><div class="ic">⭐</div><h3>Saved drafts</h3><p>Star your best openers and reuse them as templates — the recipient’s name is never stored.</p></div>
+          <div class="feat"><div class="ic">⚡</div><h3>Free AI</h3><p>Groq by default (free tier), Gemini as an option, Tavily for research. Model changes are handled automatically.</p></div>
+          <div class="feat"><div class="ic">🔒</div><h3>Private by design</h3><p>Your data stays in your browser. Profiles you view are never stored. Your API keys go only to the provider you pick.</p></div>
+          <div class="feat"><div class="ic">🔄</div><h3>One-click updates</h3><p>Check for updates and install them from inside the extension — verified before anything is written.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap two">
+        <div>
+          <h2>Install in 2 minutes</h2>
+          <p class="sub">DM Architect isn’t on the Chrome Web Store, so you load it yourself — it’s quick.</p>
+          <div class="card">
+            <ol class="install">
+              <li><a id="download-2" href="https://github.com/SurdsoN/linkedinDM/tree/main/releases"><b>Download the zip</b></a> and unzip it to a folder you’ll keep (e.g. <code>Documents/DM Architect</code>). Chrome runs it from there, so don’t delete it.</li>
+              <li>Open <code>chrome://extensions</code><button class="btn ghost small copy" data-copy="chrome://extensions" type="button">Copy</button> in a new tab.</li>
+              <li>Turn on <b>Developer mode</b> (top-right switch).</li>
+              <li>Click <b>Load unpacked</b> and choose the unzipped folder (the one containing <code>manifest.json</code>).</li>
+              <li>Pin DM Architect, open it from the toolbar, then in <b>Settings</b>: add your name and a free <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Groq key</a> (and optionally a <a href="https://app.tavily.com/" target="_blank" rel="noopener">Tavily key</a> for company research).</li>
+              <li>Open your own LinkedIn profile and click <b>Sync My Profile</b>. Done.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="shot"><img src="assets/panel-application.jpg" alt="Company flow: research and an application message with a character counter" /></div>
+      </div>
+    </section>
+
+    <section id="update">
+      <div class="wrap two">
+        <div>
+          <h2>Updates</h2>
+          <p class="sub">The extension checks this site once a day and shows a banner when a new version is out.</p>
+          <div class="card">
+            <ol class="install">
+              <li>In the side panel, open <b>Settings → Updates</b> and click <b>Check for updates</b>.</li>
+              <li>Click <b>Install update</b>. The first time, choose the DM Architect folder you installed from — Chrome asks you to allow it.</li>
+              <li>The update is downloaded, verified (checksum, name and version) and written into the folder, and the extension reloads itself.</li>
+            </ol>
+            <p class="note">Prefer doing it by hand? Download the new zip, copy its contents over your folder, and click ↻ on DM Architect in <code>chrome://extensions</code>. Your settings, keys and synced profile are kept either way.</p>
+          </div>
+        </div>
+        <div class="card release" id="release">
+          <h3 style="margin-top:0">Latest release</h3>
+          <p id="rel-head" class="note">Loading…</p>
+          <ul id="rel-notes"></ul>
+          <p class="note"><a href="https://github.com/SurdsoN/linkedinDM/blob/main/extension/CHANGELOG.md" target="_blank" rel="noopener">Full changelog</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap">
+        <h2>FAQ</h2>
+        <details><summary>Is it free?</summary><p>Yes. The extension is free, and it works with free API keys: Groq for writing (default) and Tavily for company research (1,000 searches a month on the free plan). Without any key it still drafts DMs from built-in templates.</p></details>
+        <details><summary>Does it send messages for me?</summary><p>Never. It only drafts. You review, edit, copy and send each message yourself. There are no bulk actions.</p></details>
+        <details><summary>What data leaves my computer?</summary><p>Only when you click Generate, Research or Draft Application: the needed profile text goes to the AI provider you chose, using your own key. Company research sends only the company’s name and public details. Your synced profile, notes and keys stay in your browser’s storage.</p></details>
+        <details><summary>Why isn’t it on the Chrome Web Store?</summary><p>It’s distributed directly from GitHub, which is why you load it unpacked. Updates are handled inside the extension (Settings → Updates).</p></details>
+        <details><summary>LinkedIn changed its layout and something is missing</summary><p>Click <b>Copy diagnostic report</b> in the panel and share it. It contains only the page structure — no names or profile text — and is used to adapt the extension.</p></details>
+        <div class="card notice" style="margin-top:20px">
+          <p class="note" style="margin:0"><b>Responsible use.</b> DM Architect reads only the page you have open, only when you click. LinkedIn’s User Agreement restricts automated collection of its data — use it for personal, one-at-a-time outreach.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>LinkedIn DM Architect · <span id="foot-version">latest</span></span>
+      <span><a href="https://github.com/SurdsoN/linkedinDM" target="_blank" rel="noopener">GitHub</a> · Not affiliated with LinkedIn.</span>
+    </div>
+  </footer>
+
+  <script>
+    // Always point the download buttons at the newest release (version.json in this repo).
+    (async () => {
+      const sources = ['version.json', 'https://raw.githubusercontent.com/SurdsoN/linkedinDM/main/version.json'];
+      for (const src of sources) {
+        try {
+          const res = await fetch(src + '?t=' + Date.now(), { cache: 'no-store' });
+          if (!res.ok) continue;
+          const v = await res.json();
+          const base = src.startsWith('http') ? 'https://raw.githubusercontent.com/SurdsoN/linkedinDM/main/' : '';
+          const url = /^https:/.test(v.zip) ? v.zip : base + v.zip;
+          for (const id of ['download', 'download-2']) document.getElementById(id).href = url;
+          document.getElementById('dl-version').textContent = 'v' + v.version;
+          document.getElementById('foot-version').textContent = 'v' + v.version;
+          const mb = v.size ? ` · ${(v.size / 1024).toFixed(0)} KB` : '';
+          document.getElementById('release-meta').textContent = `Version ${v.version}${v.released ? ' · released ' + v.released : ''}${mb} · Chrome ${v.minimumChromeVersion || '116'}+ · Works with free Groq and Tavily keys`;
+          document.getElementById('rel-head').innerHTML = '';
+          document.getElementById('rel-head').append(Object.assign(document.createElement('span'), { className: 'ok', textContent: 'v' + v.version }), document.createTextNode(v.released ? ' — ' + v.released : ''));
+          document.getElementById('rel-notes').replaceChildren(...(v.notes || []).map((n) => Object.assign(document.createElement('li'), { textContent: n })));
+          return;
+        } catch (_) { /* try next */ }
+      }
+      document.getElementById('rel-head').textContent = 'See the releases folder on GitHub.';
+    })();
+    for (const b of document.querySelectorAll('[data-copy]')) {
+      b.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'Copied ✓'; } catch (_) { b.textContent = 'Select & copy'; }
+        setTimeout(() => (b.textContent = 'Copy'), 1500);
+      });
+    }
+  </script>
+</body>
+</html>

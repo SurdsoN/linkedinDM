@@ -1,0 +1,12 @@
+{
+  "name": "linkedin-dm-architect",
+  "version": "0.6.0",
+  "private": true,
+  "type": "module",
+  "description": "Chrome extension (Manifest V3) that drafts personalized LinkedIn DMs. No build step.",
+  "scripts": {
+    "test": "node tests/run-tests.mjs",
+    "test:e2e": "node tests/e2e-extension.mjs",
+    "package": "sh scripts/package.sh"
+  }
+}
