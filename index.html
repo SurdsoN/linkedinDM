@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a66c2" />
   <title>LinkedIn DM Architect</title>
   <meta name="description" content="A free Chrome extension that drafts personalised LinkedIn messages and job application messages from the page you're viewing and your own profile. You review and send — nothing is automatic." />
   <link rel="icon" href="assets/icon128.png" />
@@ -34,7 +35,14 @@
     .brand img { width: 28px; height: 28px; border-radius: 6px; }
     nav a { color: var(--muted); text-decoration: none; margin-left: 18px; font-size: 14px; }
     nav a:hover { color: var(--text); }
-    @media (max-width: 720px) { nav a:not(.keep) { display: none; } }
+    .menu-btn { display: none; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 20px; line-height: 1; cursor: pointer; }
+    @media (max-width: 760px) {
+      .menu-btn { display: inline-grid; place-items: center; }
+      nav { display: none; position: absolute; top: 60px; left: 0; right: 0; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: var(--shadow); padding: 6px 16px 12px; }
+      header.top.open nav { display: block; }
+      nav a { display: block; margin: 0; padding: 13px 4px; font-size: 16px; color: var(--text); border-bottom: 1px solid var(--border); }
+      nav a:last-child { border-bottom: 0; }
+    }
 
     .btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 12px 20px; font-weight: 700; text-decoration: none; border: 1px solid transparent; cursor: pointer; font-size: 15px; }
     .btn.primary { background: var(--accent); color: var(--accent-ink); }
@@ -42,8 +50,9 @@
     .btn.ghost { border-color: var(--border); color: var(--text); background: var(--surface); }
     .btn.small { padding: 7px 14px; font-size: 13px; }
 
-    .hero { padding: 64px 0 40px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; }
+    .hero { padding-top: 64px; padding-bottom: 40px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; }
     @media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-top: 40px; } }
+    section { scroll-margin-top: 60px; }
     .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; }
     h1 { font-size: clamp(32px, 5vw, 52px); line-height: 1.08; letter-spacing: -.02em; margin: 14px 0 16px; }
     .lead { font-size: 18px; color: var(--muted); max-width: 560px; }
@@ -51,6 +60,20 @@
     .meta { margin-top: 14px; font-size: 13px; color: var(--muted); }
     .shot { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); padding: 10px; max-width: 380px; justify-self: center; }
     .shot img { display: block; width: 100%; height: 520px; object-fit: cover; object-position: top; border-radius: 12px; }
+
+    .video { position: relative; aspect-ratio: 16 / 9; width: 100%; max-width: 880px; border-radius: var(--radius); overflow: hidden; background: #000; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .video iframe, .video button { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .video button { padding: 0; cursor: pointer; background: #0d1117 center / cover no-repeat; }
+    .video button::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.05) 55%); }
+    .video .play { position: absolute; z-index: 1; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 76px; height: 54px; border-radius: 14px; background: #ff0033; display: grid; place-items: center; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+    .video .play::before { content: ""; border-style: solid; border-width: 11px 0 11px 19px; border-color: transparent transparent transparent #fff; margin-left: 4px; }
+    .video .vlabel { position: absolute; z-index: 1; left: 16px; bottom: 14px; right: 16px; color: #fff; font-weight: 600; text-align: left; font-size: 15px; }
+    .video-links { margin-top: 10px; font-size: 14px; color: var(--muted); }
+
+    .mobile-only { display: none; }
+    .desktop-note { display: flex; gap: 12px; align-items: flex-start; }
+    .desktop-note .ic { font-size: 22px; line-height: 1.2; }
+    .desktop-note p { margin: 0 0 10px; }
 
     section { padding: 56px 0; }
     h2 { font-size: clamp(24px, 3.4vw, 34px); letter-spacing: -.01em; margin: 0 0 8px; }
@@ -87,21 +110,51 @@
     details p { color: var(--muted); margin: 10px 0 0; }
 
     .notice { border-left: 4px solid var(--accent); }
-    footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
+    footer { border-top: 1px solid var(--border); padding: 28px 0 calc(40px + env(safe-area-inset-bottom)); color: var(--muted); font-size: 14px; }
     footer .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    /* Phones */
+    @media (max-width: 600px) {
+      body { font-size: 16px; -webkit-text-size-adjust: 100%; }
+      .wrap { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+      .brand { font-size: 15px; }
+      .hero { padding-top: 28px; padding-bottom: 8px; gap: 28px; }
+      h1 { font-size: clamp(28px, 8.4vw, 36px); margin: 12px 0 12px; }
+      .lead { font-size: 16px; }
+      .cta { flex-direction: column; gap: 10px; margin-top: 22px; }
+      .cta .btn { justify-content: center; width: 100%; padding: 14px 20px; font-size: 16px; }
+      .shot { max-width: 100%; width: 100%; padding: 8px; }
+      .shot img { height: 380px; }
+      section { padding: 36px 0; }
+      .sub { margin-bottom: 20px; }
+      .step, .feat, .card { padding: 16px; }
+      .grid { gap: 12px; }
+      ol.install { padding-left: 20px; }
+      ol.install li { margin: 12px 0; }
+      code { overflow-wrap: anywhere; }
+      .btn.small { padding: 9px 14px; min-height: 36px; }
+      .copy { margin: 6px 0 0; display: inline-flex; }
+      details { padding: 12px 14px; }
+      summary { padding: 4px 0; }
+      footer .wrap { flex-direction: column; }
+      .video .play { width: 64px; height: 46px; }
+      .mobile-only { display: block; }
+    }
   </style>
 </head>
 <body>
   <header class="top">
     <div class="wrap">
       <a class="brand" href="#"><img src="assets/icon128.png" alt="" />LinkedIn DM Architect</a>
-      <nav>
+      <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">☰</button>
+      <nav id="site-nav">
+        <a href="#demo">Demo</a>
         <a href="#how">How it works</a>
         <a href="#features">Features</a>
         <a href="#install">Install</a>
         <a href="#update">Updates</a>
         <a href="#faq">FAQ</a>
-        <a class="keep" href="https://github.com/SurdsoN/linkedinDM" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/SurdsoN/linkedinDM" target="_blank" rel="noopener">GitHub</a>
       </nav>
     </div>
   </header>
@@ -114,12 +167,28 @@
         <p class="lead">DM Architect reads the profile or company page you’re on, matches it to your own profile, researches the company, and drafts personalised DMs and application messages. You review, edit and send — nothing is ever sent for you.</p>
         <div class="cta">
           <a id="download" class="btn primary" href="https://github.com/SurdsoN/linkedinDM/tree/main/releases">⬇ Download <span id="dl-version"></span></a>
+          <a class="btn ghost" href="#demo">▶ Watch the demo</a>
           <a class="btn ghost" href="#install">How to install</a>
         </div>
         <p class="meta" id="release-meta">Chrome 116+ · Works with free Groq and Tavily keys</p>
       </div>
       <div class="shot"><img src="assets/panel-target.jpg" alt="DM Architect side panel showing ranked conversation hooks next to a LinkedIn profile" /></div>
     </div>
+
+    <section id="demo">
+      <div class="wrap">
+        <h2>See it in action</h2>
+        <p class="sub">A walkthrough of syncing your profile, drafting DMs and writing an application message.</p>
+        <div class="video" id="video" data-id="1gjnhoqkI3I">
+          <button type="button" aria-label="Play the DM Architect demo video">
+            <span class="play" aria-hidden="true"></span>
+            <span class="vlabel">LinkedIn DM Architect — demo</span>
+          </button>
+          <noscript><iframe src="https://www.youtube-nocookie.com/embed/1gjnhoqkI3I" title="LinkedIn DM Architect demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></noscript>
+        </div>
+        <p class="video-links">Video not playing? <a href="https://youtube.com/live/1gjnhoqkI3I" target="_blank" rel="noopener">Watch it on YouTube</a>.</p>
+      </div>
+    </section>
 
     <section id="how">
       <div class="wrap">
@@ -156,6 +225,15 @@
         <div>
           <h2>Install in 2 minutes</h2>
           <p class="sub">DM Architect isn’t on the Chrome Web Store, so you load it yourself — it’s quick.</p>
+          <div class="card notice mobile-only" style="margin-bottom:16px">
+            <div class="desktop-note">
+              <span class="ic" aria-hidden="true">💻</span>
+              <div>
+                <p><b>Install on a computer.</b> Chrome extensions run on desktop Chrome (Windows, Mac, Linux, ChromeOS), not on phones. Send this page to yourself and open it there.</p>
+                <button class="btn primary small" id="share-link" type="button">Send link to my computer</button>
+              </div>
+            </div>
+          </div>
           <div class="card">
             <ol class="install">
               <li><a id="download-2" href="https://github.com/SurdsoN/linkedinDM/tree/main/releases"><b>Download the zip</b></a> and unzip it to a folder you’ll keep (e.g. <code>Documents/DM Architect</code>). Chrome runs it from there, so don’t delete it.</li>
@@ -240,6 +318,42 @@
       }
       document.getElementById('rel-head').textContent = 'See the releases folder on GitHub.';
     })();
+    // Mobile menu
+    const header = document.querySelector('header.top');
+    const menuBtn = header.querySelector('.menu-btn');
+    const setMenu = (open) => { header.classList.toggle('open', open); menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.textContent = open ? '✕' : '☰'; };
+    menuBtn.addEventListener('click', () => setMenu(!header.classList.contains('open')));
+    for (const a of header.querySelectorAll('nav a')) a.addEventListener('click', () => setMenu(false));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+    // Video: show a light thumbnail first, load YouTube only when tapped (faster on phones).
+    (() => {
+      const box = document.getElementById('video');
+      const id = box.dataset.id;
+      const btn = box.querySelector('button');
+      const img = new Image();
+      img.onload = () => { if (img.naturalWidth > 120) btn.style.backgroundImage = `url(${img.src})`; };
+      img.src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+      btn.addEventListener('click', () => {
+        const f = document.createElement('iframe');
+        f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0`;
+        f.title = 'LinkedIn DM Architect demo';
+        f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        f.allowFullscreen = true;
+        btn.replaceWith(f);
+      });
+    })();
+
+    // "Send link to my computer": native share sheet on phones, copy as fallback.
+    document.getElementById('share-link').addEventListener('click', async (e) => {
+      const b = e.currentTarget;
+      const url = location.href.split('#')[0];
+      try {
+        if (navigator.share) { await navigator.share({ title: 'LinkedIn DM Architect', text: 'Install this Chrome extension on my computer', url }); return; }
+        await navigator.clipboard.writeText(url); b.textContent = 'Link copied ✓';
+      } catch (_) { /* share cancelled */ }
+    });
+
     for (const b of document.querySelectorAll('[data-copy]')) {
       b.addEventListener('click', async () => {
         try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'Copied ✓'; } catch (_) { b.textContent = 'Select & copy'; }
